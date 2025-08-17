@@ -35,7 +35,7 @@ LLM can act as powerful translators, turning natural language questions into exe
 4. To serve the local LLM, create an Application `fastapi-llm` using this [run-fastapi.py](run-fastapi.py) script. This script will run [fastapi-llm.py](fastapi-llm.py) with specific parameters. Upon successful run, take not of the Application URL.
 <img width="700" height="687" alt="image" src="https://github.com/user-attachments/assets/365712a1-fee1-4e88-91ae-b7802c99fb2c" />
 
-5. Next, ensure Impala Virtual Warehouse in CDW is up and running. Copy the JDBC URL (LDAP) details.
+5. Next, ensure that Impala Virtual Warehouse in CDW is up and running. Copy the JDBC URL (LDAP) details.
 <img width="700" height="669" alt="image" src="https://github.com/user-attachments/assets/d9b24ea3-9c00-4698-82b1-ccc4e0625e64" />
 
 6. Navigate to CAI, modify the following settings in [app-gradio.py](app-gradio.py) based on the captured JDBC URL details and Application URL `fastapi-llm`.
