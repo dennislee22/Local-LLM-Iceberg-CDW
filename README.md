@@ -4,7 +4,7 @@
 
 LLM can act as powerful translators, turning natural language questions into executable database queries. This blog post shows fully functional chatbot that allows users to ask questions in plain English, which are then translated into SQL, run against an Impala with Iceberg format database, and summarized back into a conversational response. 
 
-<img width="925" height="390" alt="image" src="https://github.com/user-attachments/assets/1a1a9cca-816d-4029-8a43-7cd14f6bda72" />
+<img width="700" height="390" alt="image" src="https://github.com/user-attachments/assets/1a1a9cca-816d-4029-8a43-7cd14f6bda72" />
 
 ## How it Works?
 - The Gradio chatbot [app-gradio.py](app-gradio.py) utilizes the LangChain framework whereby the `SQLDatabase` class from `langchain_community.utilities` is the component responsible for connecting to the database and providing its schema. Under the hood, `SQLDatabase` acts as a wrapper around the database connection. `db = SQLDatabase.from_uri` establishes a connection and includes methods to inspect the database's structure. `SQLDatabase` connects to the database and can pull the schema (table names, column details, data types, and sample rows).
