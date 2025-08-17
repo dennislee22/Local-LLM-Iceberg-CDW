@@ -24,7 +24,7 @@ LLM can act as powerful translators, turning natural language questions into exe
 
 1. Create a new CAI project.
    
-2. Install python libraries.
+2. Install the required python libraries.
   ```
   pip install pydantic httpx uvicorn fastapi torch transformers ipywidgets pandas SQLAlchemy langchain_openai langchain_community langchain langchain_core
   ```
