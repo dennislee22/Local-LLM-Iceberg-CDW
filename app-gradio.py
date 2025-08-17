@@ -19,8 +19,8 @@ from langchain_core.output_parsers import StrOutputParser
 class AppSettings(BaseModel):
     IMPALA_HOST: str = 'coordinator-ares-impala-vw.apps.cdppvc.ares.olympus.cloudera.com'
     IMPALA_PORT: int = 443
-    USERNAME: str = 'dennislee'
-    PASSWORD: str = 'YEEI0oy8BFnSRpwm'
+    USERNAME: str = 'LDAPUSER'
+    PASSWORD: str = 'LDAPPASSWORD'
     HTTP_PATH: str = '/cliservice'
     DATABASE: str = 'dlee_telco'
     LLM_ENDPOINT_URL: str = 'https://fastapi-llm.ml-9df5bc51-1da.apps.cdppvc.ares.olympus.cloudera.com/v1'
