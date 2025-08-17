@@ -97,7 +97,7 @@ how many customers exist in the table based on SYSTEM TIME 2025-08-18 03:34:59?
 
 <img width="700" height="525" alt="image" src="https://github.com/user-attachments/assets/92f75569-9107-460b-8266-f90d2daf31e5" />
 
-Log:
+gradio.log:
 ```
 --- Generated SQL ---
 SELECT COUNT(*) 
