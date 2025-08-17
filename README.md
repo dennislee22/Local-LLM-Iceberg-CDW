@@ -2,7 +2,7 @@
 
 ![LLM-iceberg](https://github.com/user-attachments/assets/810fe476-1aed-4bb1-adb1-02b237d80457)
 
-LLM can act as powerful translators, turning natural language questions into executable database queries. This blog post shows fully functional chatbot that allows users to ask questions in plain English, which are then translated into SQL, run against an Impala with Iceberg format database, and summarized back into a conversational response. 
+LLM can act as powerful translators, turning natural language questions into executable database queries. This blog post shows a fully functional chatbot that allows users to ask questions in plain English, which are then translated into SQL, run against an Impala with Iceberg format database, and summarized back into a conversational response. 
 
 <img width="700" height="390" alt="image" src="https://github.com/user-attachments/assets/1a1a9cca-816d-4029-8a43-7cd14f6bda72" />
 
