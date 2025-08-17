@@ -89,6 +89,14 @@ WHERE p.plan_type = 'Prepaid';
 
 6. Now ask the chatbot about the customers with specific time.
 
+```
+how many customers exist in the table based on SYSTEM TIME 2025-08-18 03:34:59?
+```
+
+<img width="700" height="657" alt="image" src="https://github.com/user-attachments/assets/47e882da-6f28-4925-abfd-6e6a104ae1a2" />
+
+
+
  
 
 
