@@ -93,7 +93,7 @@ WHERE p.plan_type = 'Prepaid';
 how many customers exist in the table based on SYSTEM TIME 2025-08-18 03:34:59?
 ```
 
-7. Ask the chatbot about the customers without specific `system time`, `how many customers registered since 2025-08-18?`. Note that the chatbot has returned correct response based on the registration time as per the column date.
+7. Ask the chatbot about the customers without specific `system time`, `how many customers registered since 2025-08-18?`. Note that the chatbot has returned correct response based on column `registration_date`.
 
 <img width="700" height="525" alt="image" src="https://github.com/user-attachments/assets/92f75569-9107-460b-8266-f90d2daf31e5" />
 
