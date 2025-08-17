@@ -1,1 +1,69 @@
-# LLM-Iceberg-CDW
+# Local LLM -> Iceberg 💎 Database
+
+<img width="1000" height="671" alt="image" src="https://github.com/user-attachments/assets/154814cd-f433-46dc-9d0a-39a08d1a9d7c" />
+
+LLM can act as powerful translators, turning natural language questions into executable database queries. This blog post shows fully functional chatbot that allows users to ask questions in plain English, which are then translated into SQL, run against an Impala with Iceberg format database, and summarized back into a conversational response. 
+
+## How it Works?
+- The Gradio chatbot makes use the LangChain framework whereby the `SQLDatabase` class from `langchain_community.utilities` is the component responsible for connecting to the database and providing its schema. Under the hood, `SQLDatabase` acts as a wrapper around the database connection. `db = SQLDatabase.from_uri` establishes a connection and includes methods to inspect the database's structure. `SQLDatabase` connects to the database and can pull the schema (table names, column details, data types, and sample rows).
+- `create_sql_query_chain` function automatically calls the appropriate methods on the `db` object to get the schema information. It then formats this schema information and inserts it into the prompt that is sent to the LLM (ChatOpenAI) which is powered by locally hosted model, giving the model the necessary context to write a correct SQL query based on the user's question.
+- Finally, `QuerySQLDataBaseTool` takes this generated SQL string and runs it to retrieve the actual data from the database.
+- The chatbot connects to a locally hosted model served via a FastAPI endpoint. The model is loaded into the memory of an NVIDIA A100 80GB GPU for inference, but can also run on a CPU.
+
+
+## Platform Requirement
+☑️ Python 3.11
+
+☑️ Cloudera AI(CAI)/Cloudera Machine Learning (CML) 1.5.x
+
+☑️ Cloudera Data Warehouse (CDW) 1.5.x (with Iceberg)
+
+## How to Setup?
+
+1. Create a new CAI project.
+   
+2. Install python libraries.
+  ```
+  pip install pydantic httpx uvicorn fastapi torch transformers ipywidgets pandas SQLAlchemy langchain_openai langchain_community langchain langchain_core
+  ```
+
+3. Download the LLM into the project of the CAI/CML platform using either `git clone` or `wget`.
+Example:
+  ```
+  git lfs clone https://huggingface.co/Qwen/Qwen2.5-7B-Instruct
+  ```
+
+4. Download the [run-gradio.py](run-gradio.py) and [app-gradio.py](app-gradio.py) scripts into the newly created CAI project.
+
+5. Specify the LLM of your choice in [run-gradio.py](run-gradio.py). Example: Llama-3.1-8B
+Example:
+  ```
+  os.system("python app-gradio.py --server-name=127.0.0.1 --checkpoint-path=Llama-3.1-8B --server-port=$CDSW_APP_PORT > gradio.log 2>&1")
+  ```
+
+
+<img width="800" height="323" alt="image" src="https://github.com/user-attachments/assets/112f4c47-4a35-40b0-baba-b87a38f977c3" />
+
+
+<img width="800" height="669" alt="image" src="https://github.com/user-attachments/assets/d9b24ea3-9c00-4698-82b1-ccc4e0625e64" />
+
+```
+2025-08-17 04:24:06,670 - INFO - 
+--- Executing SQL on Remote DB ---
+SELECT p.plan_name, p.monthly_fee, p.data_allowance_gb, p.voice_minutes, p.sms_allowance
+FROM plans p
+WHERE p.plan_type = 'Prepaid';
+--------------------
+2025-08-17 04:24:06,681 - INFO - Using database dlee_telco as default
+2025-08-17 04:24:06,892 - INFO - 
+--- Results from DB ---
+[('Basic Prepaid', 10.0, 5, 100, 50), ('Standard Prepaid', 20.0, 15, 300, 100), ('Data Hog Prepaid', 35.0, 50, 50, 50)]
+--------------------
+2025-08-17 04:24:10,742 - INFO - HTTP Request: POST https://fastapi-llm.ml-9df5bc51-1da.apps.cdppvc.ares.olympus.cloudera.com/v1/chat/completions "HTTP/1.1 200 OK"
+```
+<img width="800" height="598" alt="image" src="https://github.com/user-attachments/assets/1eb138d1-677a-43cf-8d69-3c201b3863e4" />
+
+<img width="800" height="188" alt="image" src="https://github.com/user-attachments/assets/fee40e21-207b-48d1-9b7f-4e0c34fc3ffd" />
+
+
+
