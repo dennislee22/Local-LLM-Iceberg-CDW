@@ -54,7 +54,7 @@ class AppSettings(BaseModel):
 7. To host the frontend Gradio chabot, create an Application `ask-iceberg` using this [run-gradio.py](run-gradio.py) script. This script will run [app-gradio.py](app-gradio.py) with specific parameters. This script doesn't require GPU to run.
 <img width="800" height="323" alt="image" src="https://github.com/user-attachments/assets/112f4c47-4a35-40b0-baba-b87a38f977c3" />
 
-## Test the Chatbot 🚀
+## Test the Chatbot 🤖
 
 1. Insert some data into the Iceberg tables using [create_iceberg.py](create_iceberg.py).
 
