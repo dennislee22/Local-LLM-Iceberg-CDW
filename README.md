@@ -1,6 +1,6 @@
 # Local LLM -> Iceberg 💎 Database
 
-<img width="1000" height="671" alt="image" src="https://github.com/user-attachments/assets/154814cd-f433-46dc-9d0a-39a08d1a9d7c" />
+![LLM-iceberg](https://github.com/user-attachments/assets/810fe476-1aed-4bb1-adb1-02b237d80457)
 
 LLM can act as powerful translators, turning natural language questions into executable database queries. This blog post shows fully functional chatbot that allows users to ask questions in plain English, which are then translated into SQL, run against an Impala with Iceberg format database, and summarized back into a conversational response. 
 
@@ -38,7 +38,7 @@ LLM can act as powerful translators, turning natural language questions into exe
 5. Next, ensure Impala Virtual Warehouse in CDW is up and running. Copy the JDBC URL (LDAP) details.
 <img width="700" height="669" alt="image" src="https://github.com/user-attachments/assets/d9b24ea3-9c00-4698-82b1-ccc4e0625e64" />
 
-6. Back to CAI, modify the following settings in [app-gradio.py](app-gradio.py) based on the captured JDBC URL details and Application URL `fastapi-llm`.
+6. Navigate to CAI, modify the following settings in [app-gradio.py](app-gradio.py) based on the captured JDBC URL details and Application URL `fastapi-llm`.
 
 ```
 class AppSettings(BaseModel):
@@ -56,9 +56,9 @@ class AppSettings(BaseModel):
 
 ## Test the Chatbot 🚀
 
-1. Insert some data into the Iceberg tables using (create_iceberg.py)[create_iceberg.py].
+1. Insert some data into the Iceberg tables using [create_iceberg.py](create_iceberg.py).
 
-2. Open the `ask-iceberg` URL and ask any question pertaining to the Iceberg tables. In response to the question, the chatbot will work with LLM and Langchain SQL tools to run the associated SQL query as described in the gradio.log below.
+2. Open the `ask-iceberg` URL and ask any question pertaining to the Iceberg tables. In response to the question, the chatbot will work with LLM and LangChain SQL tools to run the associated SQL query as described in the `gradio.log` below.
 
 ```
 2025-08-17 04:24:06,670 - INFO - 
@@ -81,22 +81,30 @@ WHERE p.plan_type = 'Prepaid';
 
 <img width="700" height="188" alt="image" src="https://github.com/user-attachments/assets/fee40e21-207b-48d1-9b7f-4e0c34fc3ffd" />
 
-4. To test Icerberg Time Travel feature, insert another batch of data (50 rows of customers) using [append_iceberg.py](append_iceberg.py) script.
+4. To test Iceberg Time Travel feature, insert another batch of data (50 rows of customers) using [append_iceberg.py](append_iceberg.py) script.
 
 5. Using Hue, verify that the customers table, for instance, has 2 batches of data in its history table.
 
 <img width="700" height="573" alt="image" src="https://github.com/user-attachments/assets/26f8eeec-e9b9-48b9-8420-d6b0d738c771" />
 
-6. Now ask the chatbot about the customers with specific time.
+6. Ask the chatbot about the customers with specific `system time`. Note that the chatbot has returned correct response based on the system time when data was inserted into the table.
 
 ```
 how many customers exist in the table based on SYSTEM TIME 2025-08-18 03:34:59?
 ```
 
-<img width="700" height="657" alt="image" src="https://github.com/user-attachments/assets/47e882da-6f28-4925-abfd-6e6a104ae1a2" />
+7. Ask the chatbot about the customers without specific `system time`, `how many customers registered since 2025-08-18?`. Note that the chatbot has returned correct response based on the registration time as per the column date.
 
+<img width="700" height="525" alt="image" src="https://github.com/user-attachments/assets/92f75569-9107-460b-8266-f90d2daf31e5" />
 
-
+Log:
+```
+--- Generated SQL ---
+SELECT COUNT(*) 
+FROM customers 
+WHERE registration_date >= '2025-08-18';
+--------------------
+```
  
 
 
