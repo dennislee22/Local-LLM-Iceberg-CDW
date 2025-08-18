@@ -62,19 +62,26 @@ class AppSettings(BaseModel):
 
 2. Open the `ask-iceberg` URL and ask any question pertaining to the Iceberg tables. In response to the question, the chatbot will work with LLM and LangChain SQL tools to run the associated SQL query as described in the `gradio.log` below.
 
+<img width="700" height="525" alt="image" src="https://github.com/user-attachments/assets/27d1ec00-597c-4941-9303-15ae98773d8a" />
+
+gradio.log:
 ```
-2025-08-17 04:24:06,670 - INFO - 
---- Executing SQL on Remote DB ---
-SELECT p.plan_name, p.monthly_fee, p.data_allowance_gb, p.voice_minutes, p.sms_allowance
-FROM plans p
-WHERE p.plan_type = 'Prepaid';
+2025-08-18 02:54:25,794 - INFO - Using database dlee_telco as default
+2025-08-18 02:54:30,604 - INFO - HTTP Request: POST https://fastapi-llm.ml-9df5bc51-1da.apps.cdppvc.ares.olympus.cloudera.com/v1/chat/completions "
+HTTP/1.1 200 OK"
+2025-08-18 02:54:30,606 - INFO - 
+--- single SQL ---
+SELECT COUNT(*) 
+FROM customers 
+JOIN subscriptions ON customers.customer_id = subscriptions.customer_id 
+WHERE subscriptions.plan_id IN (SELECT plan_id FROM plans WHERE plan_type = 'Postpaid') 
+LIMIT 5;
 --------------------
-2025-08-17 04:24:06,681 - INFO - Using database dlee_telco as default
-2025-08-17 04:24:06,892 - INFO - 
+2025-08-18 02:54:30,616 - INFO - Using database dlee_telco as default
+2025-08-18 02:54:30,748 - INFO - 
 --- Results from DB ---
-[('Basic Prepaid', 10.0, 5, 100, 50), ('Standard Prepaid', 20.0, 15, 300, 100), ('Data Hog Prepaid', 35.0, 50, 50, 50)]
+[(131,)]
 --------------------
-2025-08-17 04:24:10,742 - INFO - HTTP Request: POST https://fastapi-llm.ml-9df5bc51-1da.apps.cdppvc.ares.olympus.cloudera.com/v1/chat/completions "HTTP/1.1 200 OK"
 ```
 
 3. In the `Impala Coordinator Web UI`, verify that the chatbot has triggered SQL query remotely to CDW successfully.
@@ -92,19 +99,20 @@ WHERE p.plan_type = 'Prepaid';
 6. Ask the chatbot about the customers with specific `system time`. Note that the chatbot has returned correct response based on the system time when data was inserted into the table.
 
 ```
-how many customers exist in the table based on SYSTEM TIME 2025-08-18 03:34:59?
+how many customers exist in the table based on system time 2025-08-18 03:34:59?
 ```
 
-7. Ask the chatbot about the customers without specific `system time`, `how many customers registered since 2025-08-18?`. Note that the chatbot has returned correct response based on column `registration_date`.
+In addition, ask the chatbot about the customers without specific `system time`, `how many customers registered since 2025-08-19?`. Note that the chatbot has returned correct response based on column `registration_date`.
 
-<img width="700" height="525" alt="image" src="https://github.com/user-attachments/assets/92f75569-9107-460b-8266-f90d2daf31e5" />
+<img width="700" height="529" alt="image" src="https://github.com/user-attachments/assets/deaf1272-5c9d-490d-b71b-1640a9a1c0a3" />
+
 
 gradio.log:
 ```
 --- Generated SQL ---
 SELECT COUNT(*) 
 FROM customers 
-WHERE registration_date >= '2025-08-18';
+WHERE registration_date >= '2025-08-19';
 --------------------
 ```
  
