@@ -19,8 +19,6 @@ from langchain_community.tools.sql_database.tool import QuerySQLDataBaseTool
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-# --- 1. CONFIGURATION ---
-
 class AppSettings(BaseModel):
     """Manages application settings using Pydantic for validation."""
     IMPALA_HOST: str = 'coordinator-ares-impala-vw.apps.cdppvc.ares.olympus.cloudera.com'
