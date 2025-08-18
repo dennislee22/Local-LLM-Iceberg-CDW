@@ -8,7 +8,6 @@ from argparse import ArgumentParser
 from pydantic import BaseModel
 from typing import Generator
 
-# Enable LangChain debug mode for detailed logs
 langchain.debug = True
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -23,17 +22,13 @@ class AppSettings(BaseModel):
     """Manages application settings using Pydantic for validation."""
     IMPALA_HOST: str = 'coordinator-ares-impala-vw.apps.cdppvc.ares.olympus.cloudera.com'
     IMPALA_PORT: int = 443
-    USERNAME: str = 'dennislee'
-    # WARNING: Hardcoding passwords is not recommended in production.
-    # Use environment variables or a secrets management tool instead.
-    PASSWORD: str = 'YEEI0oy8BFnSRpwm'
+    USERNAME: str = 'USERNAME'
+    PASSWORD: str = 'PASSWORD'
     HTTP_PATH: str = '/cliservice'
     DATABASE: str = 'dlee_telco'
     LLM_ENDPOINT_URL: str = 'https://fastapi-llm.ml-9df5bc51-1da.apps.cdppvc.ares.olympus.cloudera.com/v1'
 
 settings = AppSettings()
-
-# --- 2. INITIALIZATION ---
 
 def _get_args():
     """Parses command-line arguments for the application."""
@@ -90,7 +85,6 @@ def initialize_database() -> SQLDatabase:
     logging.info(f"Database connection initialized. Discovered tables: {db.get_usable_table_names()}")
     return db
 
-# --- 3. GRADIO UI AND CORE LOGIC ---
 
 def build_chatbot_ui(llm: ChatOpenAI, db: SQLDatabase) -> gr.Blocks:
     """
@@ -107,7 +101,7 @@ def build_chatbot_ui(llm: ChatOpenAI, db: SQLDatabase) -> gr.Blocks:
         task_history = gr.State([])
         gr.Image(value="/home/cdsw/clouderalogo.png", height=40, show_label=False, show_download_button=False, interactive=False, container=False)
         gr.Markdown(
-            f"""<div style="text-align: center;"><h1>Local LLM 💬 with Iceberg 💎 Database</h1><p>Ask any question about the <strong>{settings.DATABASE}</strong> ⛁.</p><p>This chatbot supports Iceberg Time Travel by using <strong>system time</strong> in your question.</p></div>"""
+            f"""<div style="text-align: center;"><h1>Local LLM 💬 with Iceberg 💎 Database</h1><p>Ask any question about the <strong>{settings.DATABASE}</strong> ⛁.</p><p>This chatbot supports Iceberg 🕒 Travel by using <strong>system time</strong> in your question.</p></div>"""
         )
         
         with gr.Row():
@@ -116,7 +110,6 @@ def build_chatbot_ui(llm: ChatOpenAI, db: SQLDatabase) -> gr.Blocks:
                 query_box = gr.Textbox(lines=3, label="Your Question", placeholder="e.g., List prepaid plan that customers can buy or How many customers existed as of system time 2025-08-10?")
                 with gr.Row():
                     submit_btn = gr.Button("Submit", variant="primary")
-                    regenerate_btn = gr.Button("Regenerate")
                     clear_btn = gr.Button("Clear History")
         
         def predict(query: str, history: list) -> Generator[tuple[list, list], None, None]:
@@ -130,14 +123,17 @@ def build_chatbot_ui(llm: ChatOpenAI, db: SQLDatabase) -> gr.Blocks:
 
             # --- Step 1: Generate SQL Query with Iceberg Time Travel Context ---
             try:
-                # CORRECTED PROMPT: Uses {input} and {top_k} as required by the chain.
                 sql_generation_prompt = ChatPromptTemplate.from_messages([
                     ("system", 
-                     "You are an expert SQL assistant. Given a user question, create a syntactically correct SQL query to run against an Impala database.\n"
-                     "**IMPORTANT**: This database supports Apache Iceberg time travel. If the user's question includes the keywords 'system time' or asks for data 'as of' a specific past date, you MUST use the `FOR SYSTEM_TIME AS OF 'YYYY-MM-DD HH:MI:SS'` syntax in your query. "
-                     "You must never use data that does not exist yet. The current system time is 2025-08-17 18:08:05.\n"
-                     "Here is the relevant table schema: {table_info}\n"
-                     "Limit the number of results to {top_k}."),
+         "You are an expert SQL assistant. Given a user question, create a syntactically correct SQL query to run against an Impala database.\n"
+         "**IMPORTANT**: This database supports Apache Iceberg time travel. If the user's question includes the keywords 'system time' or asks for data 'as of' a specific past date, you MUST use the `FOR SYSTEM_TIME AS OF 'YYYY-MM-DD HH:MI:SS'` syntax.\n\n"
+         "**SYNTAX RULE**: The time travel clause MUST come immediately after the table name. For example:\n"
+         "`SELECT * FROM my_table FOR SYSTEM_TIME AS OF '...'`\n\n"
+         "When joining tables, you must apply the clause to **each table** in the query. For example:\n"
+         "`... FROM table_a FOR SYSTEM_TIME AS OF '...' JOIN table_b FOR SYSTEM_TIME AS OF '...' ON ...`\n\n"
+         "You must never use data that does not exist yet. The current system time is 2025-08-17 18:08:05.\n"
+         "Here is the relevant table schema: {table_info}\n"
+         "Limit the number of results to {top_k}."),
                     ("user", "{input}") 
                 ])
 
@@ -154,6 +150,12 @@ def build_chatbot_ui(llm: ChatOpenAI, db: SQLDatabase) -> gr.Blocks:
                     generated_sql = generated_sql.split("SQLQuery:")[-1]
                 if "SQLResult:" in generated_sql:
                     generated_sql = generated_sql.split("SQLResult:")[0]
+
+                generated_sql = "\n".join(line for line in generated_sql.splitlines() if not line.strip().startswith('--'))
+    
+                if ';' in generated_sql:
+                    generated_sql = generated_sql.split(';')[0].strip() + ';' # Keep the semicolon for the first statement
+    
                 generated_sql = generated_sql.strip()
                 
                 logging.info(f"\n--- Generated SQL ---\n{generated_sql}\n--------------------")
@@ -215,15 +217,6 @@ def build_chatbot_ui(llm: ChatOpenAI, db: SQLDatabase) -> gr.Blocks:
                 history[-1] = {"role": "assistant", "content": f"❌ Error during summarization. Please check the terminal logs for the root cause."}
                 yield history, history
 
-        def regenerate(history: list) -> Generator[tuple[list, list], None, None]:
-            """Regenerates the last response."""
-            if len(history) >= 2:
-                history.pop(); history.pop()
-                if history:
-                    last_query = history[-1]['content']
-                    yield from predict(last_query, history)
-            yield history, history
-
         def clear_history() -> tuple[list, list]:
             """Clears the chat history."""
             return [], []
@@ -234,12 +227,9 @@ def build_chatbot_ui(llm: ChatOpenAI, db: SQLDatabase) -> gr.Blocks:
 
         # --- Event Listeners ---
         submit_btn.click(predict, [query_box, chatbot], [chatbot, task_history]).then(reset_user_input, [], [query_box])
-        regenerate_btn.click(regenerate, [task_history], [chatbot, task_history])
         clear_btn.click(clear_history, [], [chatbot, task_history])
         
         return demo
-
-# --- 4. MAIN EXECUTION BLOCK ---
 
 def main():
     """Main function to initialize components and launch the demo."""
