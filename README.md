@@ -1,4 +1,4 @@
-# Local LLM -> Iceberg 💎 Database
+# Local LLM → Iceberg Database 💎⛁
 
 ![LLM-iceberg](https://github.com/user-attachments/assets/810fe476-1aed-4bb1-adb1-02b237d80457)
 
