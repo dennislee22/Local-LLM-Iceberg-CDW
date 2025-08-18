@@ -1,6 +1,7 @@
 # Local LLM → Iceberg Database 💎⛁
 
-![LLM-iceberg](https://github.com/user-attachments/assets/810fe476-1aed-4bb1-adb1-02b237d80457)
+![llm-iceberg](https://github.com/user-attachments/assets/bd62db99-cdbc-4789-ab46-e52cfe00b1e3)
+
 
 LLM can act as powerful translators, turning natural language questions into executable database queries. This blog post shows a fully functional chatbot that allows users to ask questions in plain language, which are then translated into SQL, run against an Impala with Iceberg format database, and summarized back into a conversational response. 
 
