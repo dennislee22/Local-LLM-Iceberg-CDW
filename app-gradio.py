@@ -22,7 +22,7 @@ class AppSettings(BaseModel):
     """Manages application settings using Pydantic for validation."""
     IMPALA_HOST: str = 'coordinator-ares-impala-vw.apps.cdppvc.ares.olympus.cloudera.com'
     IMPALA_PORT: int = 443
-    USERNAME: str = 'USERNAME'
+    USERNAME: str = 'USEERNAME'
     PASSWORD: str = 'PASSWORD'
     HTTP_PATH: str = '/cliservice'
     DATABASE: str = 'dlee_telco'
@@ -55,7 +55,7 @@ def initialize_llm() -> ChatOpenAI:
             api_key="dummy",
             max_tokens=4096,
             request_timeout=120,
-            http_client=httpx.Client(verify=False), # Disable SSL verification for custom certs
+            http_client=httpx.Client(verify=False),
             model_kwargs={
                 "top_p": 0.9,
                 "frequency_penalty": 0.1,
@@ -81,7 +81,8 @@ def initialize_database() -> SQLDatabase:
         f"impala://{settings.USERNAME}:{settings.PASSWORD}@{settings.IMPALA_HOST}:{settings.IMPALA_PORT}/{settings.DATABASE}?"
         f"auth_mechanism=LDAP&use_ssl=true&use_http_transport=true&http_path={settings.HTTP_PATH}"
     )
-    db = SQLDatabase.from_uri(db_uri, sample_rows_in_table_info=0) 
+    relevant_tables = ["subscriptions", "plans", "customers", "recharges", "usage_records"] 
+    db = SQLDatabase.from_uri(db_uri, include_tables=relevant_tables, sample_rows_in_table_info=10) #helps LLM understands schema and the type of data in each column.
     logging.info(f"Database connection initialized. Discovered tables: {db.get_usable_table_names()}")
     return db
 
@@ -128,8 +129,9 @@ def build_chatbot_ui(llm: ChatOpenAI, db: SQLDatabase) -> gr.Blocks:
                     ("system", 
                      "You are an expert SQL assistant. Your sole purpose is to generate a single, syntactically correct SQL query for an Impala database based on a user's question.\n\n"
                      "**CRITICAL RULES:**\n"
-                     "1. **SINGLE QUERY ONLY:** You MUST generate only one single SQL query. Do not output multiple queries, comments, or any explanatory text. The entire output must be only the SQL statement.\n"
-                     "2. **ICEBERG TIME TRAVEL:** If the user's question includes 'system time', you MUST use the `FOR SYSTEM_TIME AS OF 'YYYY-MM-DD HH:MI:SS'` syntax on every table in the query. Otherwise, do not use this syntax.\n\n"
+                     "1. **STUDY SCHEMA:** You MUST study the schema of each table, join the table if necessary to produce the correct SQL query.\n"
+                     "2. **SINGLE QUERY ONLY:** You MUST generate only one single SQL query. Do not output multiple queries, comments, or any explanatory text. The entire output must be only the SQL statement.\n"
+                     "3. **ICEBERG TIME TRAVEL:** If the user's question includes 'system time', you MUST use the `FOR SYSTEM_TIME AS OF 'YYYY-MM-DD HH:MI:SS'` syntax on every table in the query. Otherwise, do not use this syntax.\n\n"
                      "Here is the relevant table schema: {table_info}\n"
                      "Limit the number of results to {top_k}."
                     ),
