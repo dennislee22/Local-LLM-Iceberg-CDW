@@ -22,7 +22,7 @@ class AppSettings(BaseModel):
     """Manages application settings using Pydantic for validation."""
     IMPALA_HOST: str = 'coordinator-ares-impala-vw.apps.cdppvc.ares.olympus.cloudera.com'
     IMPALA_PORT: int = 443
-    USERNAME: str = 'USEERNAME'
+    USERNAME: str = 'USERNAME'
     PASSWORD: str = 'PASSWORD'
     HTTP_PATH: str = '/cliservice'
     DATABASE: str = 'dlee_telco'
