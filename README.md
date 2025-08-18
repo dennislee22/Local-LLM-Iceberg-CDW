@@ -32,7 +32,7 @@ LLM can act as powerful translators, turning natural language questions into exe
 
 3. Download the foundational LLM into the project of the CAI/CML platform using either `git clone` or `wget`. `Qwen2.5-7B-Instruct` model is selected due to its Text-to-SQL and multilingual capabilities. 
   ```
-  git lfs clone https://huggingface.co/Qwen/Qwen2.5-7B-Instruct
+  git lfs clone https://huggingface.co/Qwen/Qwen2.5-14B-Instruct-1M
   ```
 
 4. To serve the local LLM, create an Application `fastapi-llm` using this [run-fastapi.py](run-fastapi.py) script. This script will run [fastapi-llm.py](fastapi-llm.py) with specific parameters. Upon successful run, take not of the Application URL.
