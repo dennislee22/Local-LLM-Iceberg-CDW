@@ -26,7 +26,7 @@ LLM can act as powerful translators, turning natural language questions into exe
    
 2. Install the required python libraries.
   ```
-  pip install pydantic httpx uvicorn fastapi torch transformers ipywidgets pandas SQLAlchemy langchain_openai langchain_community langchain langchain_core
+  pip install -U pydantic httpx uvicorn fastapi torch transformers ipywidgets pandas SQLAlchemy langchain-openai langchain-community langchain langchain-core
   ```
 
 3. Download the foundational LLM into the project of the CAI/CML platform using either `git clone` or `wget`. `Qwen2.5-7B-Instruct` model is selected due to its Text-to-SQL and multilingual capabilities. 
