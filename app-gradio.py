@@ -109,7 +109,7 @@ def build_chatbot_ui(llm: ChatOpenAI, db: SQLDatabase) -> gr.Blocks:
         task_history = gr.State([])
         gr.Image(value="/home/cdsw/clouderalogo.png", height=40, show_label=False, show_download_button=False, interactive=False, container=False)
         gr.Markdown(
-            f"""<div style="text-align: center;"><h1>Local LLM 💬 with Iceberg 💎 Database</h1><p>Ask any question about the <strong>{settings.DATABASE}</strong> database.</p><p>This chatbot supports Iceberg Time Travel by using <strong>system time</strong> in your question.</p></div>"""
+            f"""<div style="text-align: center;"><h1>Local LLM 💬 with Iceberg 💎 Database</h1><p>Ask any question about the <strong>{settings.DATABASE}</strong> ⛁.</p><p>This chatbot supports Iceberg Time Travel by using <strong>system time</strong> in your question.</p></div>"""
         )
         
         with gr.Row():
