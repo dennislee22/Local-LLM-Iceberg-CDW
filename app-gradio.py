@@ -81,7 +81,7 @@ def initialize_database() -> SQLDatabase:
         f"impala://{settings.USERNAME}:{settings.PASSWORD}@{settings.IMPALA_HOST}:{settings.IMPALA_PORT}/{settings.DATABASE}?"
         f"auth_mechanism=LDAP&use_ssl=true&use_http_transport=true&http_path={settings.HTTP_PATH}"
     )
-    db = SQLDatabase.from_uri(db_uri, sample_rows_in_table_info=3)
+    db = SQLDatabase.from_uri(db_uri, sample_rows_in_table_info=0) 
     logging.info(f"Database connection initialized. Discovered tables: {db.get_usable_table_names()}")
     return db
 
@@ -101,7 +101,7 @@ def build_chatbot_ui(llm: ChatOpenAI, db: SQLDatabase) -> gr.Blocks:
         task_history = gr.State([])
         gr.Image(value="/home/cdsw/clouderalogo.png", height=40, show_label=False, show_download_button=False, interactive=False, container=False)
         gr.Markdown(
-            f"""<div style="text-align: center;"><h1>Local LLM 💬 with Iceberg 💎 Database</h1><p>Ask any question about the <strong>{settings.DATABASE}</strong> ⛁.</p><p>This chatbot supports Iceberg 🕒 Travel by using <strong>system time</strong> in your question.</p></div>"""
+            f"""<div style="text-align: center;"><h1>Local LLM 💬 with Iceberg 💎 Database</h1><p>Ask any question about the <strong>{settings.DATABASE}</strong> ⛁.</p><p>This chatbot supports Iceberg 🕒 Travel by using <strong>system time</strong> keyword in your question.</p></div>"""
         )
         
         with gr.Row():
@@ -123,42 +123,34 @@ def build_chatbot_ui(llm: ChatOpenAI, db: SQLDatabase) -> gr.Blocks:
 
             # --- Step 1: Generate SQL Query with Iceberg Time Travel Context ---
             try:
+                # --- THIS BLOCK HAS BEEN REPLACED AS REQUESTED ---
                 sql_generation_prompt = ChatPromptTemplate.from_messages([
                     ("system", 
-         "You are an expert SQL assistant. Given a user question, create a syntactically correct SQL query to run against an Impala database.\n"
-         "**IMPORTANT**: This database supports Apache Iceberg time travel. If the user's question includes the keywords 'system time' or asks for data 'as of' a specific past date, you MUST use the `FOR SYSTEM_TIME AS OF 'YYYY-MM-DD HH:MI:SS'` syntax.\n\n"
-         "**SYNTAX RULE**: The time travel clause MUST come immediately after the table name. For example:\n"
-         "`SELECT * FROM my_table FOR SYSTEM_TIME AS OF '...'`\n\n"
-         "When joining tables, you must apply the clause to **each table** in the query. For example:\n"
-         "`... FROM table_a FOR SYSTEM_TIME AS OF '...' JOIN table_b FOR SYSTEM_TIME AS OF '...' ON ...`\n\n"
-         "You must never use data that does not exist yet. The current system time is 2025-08-17 18:08:05.\n"
-         "Here is the relevant table schema: {table_info}\n"
-         "Limit the number of results to {top_k}."),
+                     "You are an expert SQL assistant. Your sole purpose is to generate a single, syntactically correct SQL query for an Impala database based on a user's question.\n\n"
+                     "**CRITICAL RULES:**\n"
+                     "1. **SINGLE QUERY ONLY:** You MUST generate only one single SQL query. Do not output multiple queries, comments, or any explanatory text. The entire output must be only the SQL statement.\n"
+                     "2. **ICEBERG TIME TRAVEL:** If the user's question includes 'system time', you MUST use the `FOR SYSTEM_TIME AS OF 'YYYY-MM-DD HH:MI:SS'` syntax on every table in the query. Otherwise, do not use this syntax.\n\n"
+                     "Here is the relevant table schema: {table_info}\n"
+                     "Limit the number of results to {top_k}."
+                    ),
                     ("user", "{input}") 
                 ])
 
                 sql_query_chain = create_sql_query_chain(llm, db, prompt=sql_generation_prompt)
                 
-                # The key remains "question" here, as the chain internally maps it to the "input" variable.
                 raw_llm_output = sql_query_chain.invoke({"question": query})
 
-                # Clean up LLM output to isolate the SQL query
-                generated_sql = raw_llm_output
+                generated_sql = raw_llm_output.strip()
                 if "```sql" in generated_sql:
                     generated_sql = generated_sql.split("```sql")[1].split("```")[0]
+                
                 if "SQLQuery:" in generated_sql:
                     generated_sql = generated_sql.split("SQLQuery:")[-1]
-                if "SQLResult:" in generated_sql:
-                    generated_sql = generated_sql.split("SQLResult:")[0]
-
-                generated_sql = "\n".join(line for line in generated_sql.splitlines() if not line.strip().startswith('--'))
-    
-                if ';' in generated_sql:
-                    generated_sql = generated_sql.split(';')[0].strip() + ';' # Keep the semicolon for the first statement
-    
-                generated_sql = generated_sql.strip()
                 
-                logging.info(f"\n--- Generated SQL ---\n{generated_sql}\n--------------------")
+                if ";" in generated_sql:
+                    generated_sql = generated_sql.split(";")[0].strip() + ";"
+                
+                logging.info(f"\n--- single SQL ---\n{generated_sql}\n--------------------")
 
             except Exception as e:
                 logging.error(f"Error during SQL generation: {e}", exc_info=True)
@@ -185,7 +177,7 @@ def build_chatbot_ui(llm: ChatOpenAI, db: SQLDatabase) -> gr.Blocks:
 
             except Exception as e:
                 logging.error(f"Error during database query: {e}", exc_info=True)
-                error_message = f"❌ **Error during database query:**\n\nCheck terminal logs.\n\n**Details:**\n```\n{e}\n```"
+                error_message = f"❌ **Error during database query:**\n\nThe database rejected the following query:\n```sql\n{generated_sql}\n```\n**Error Details:**\n`{e}`"
                 history[-1] = {"role": "assistant", "content": error_message}
                 yield history, history
                 return
@@ -195,12 +187,13 @@ def build_chatbot_ui(llm: ChatOpenAI, db: SQLDatabase) -> gr.Blocks:
             
             # --- Step 3: Summarize Results for the User ---
             try:
+                # --- THIS BLOCK HAS BEEN REPLACED AS REQUESTED ---
                 summarization_prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a helpful AI assistant. Your task is to explain database query results to a user in a clear, conversational way.\n\n"
-               "**IMPORTANT:** The data from the database is often a list of tuples, like `[(value,)]` or `[(3,)]`. "
-               "You MUST extract the value from *inside* the tuple to form the answer. For example, if the result is `[(3,)]`, the answer is 3.\n\n"
-               "**Provide a direct, factual answer and do not ask any follow-up questions.**"), # <-- ADD THIS INSTRUCTION
-    ("user", "My original question was: \"{question}\"\n\nHere is the data from the database:\n```{result}```")
+                    ("system", "You are a helpful AI assistant. Your task is to explain database query results to a user in a clear, conversational way.\n\n"
+                     "**IMPORTANT:** The data from the database is often a list of tuples, like `[(value,)]` or `[(3,)]`. "
+                     "You MUST extract the value from *inside* the tuple to form the answer. For example, if the result is `[(3,)]`, the answer is 3.\n\n"
+                     "**Provide a direct, factual answer and do not ask any follow-up questions. Do not give false information especially when SQL queries did not work due to errors. Must answer in English.**"),
+                    ("user", "My original question was: \"{question}\"\n\nHere is the data from the database:\n```{result}```")
                 ])
                 
                 summarize_chain = summarization_prompt | llm | StrOutputParser()
@@ -232,7 +225,6 @@ def build_chatbot_ui(llm: ChatOpenAI, db: SQLDatabase) -> gr.Blocks:
         return demo
 
 def main():
-    """Main function to initialize components and launch the demo."""
     args = _get_args()
     llm = initialize_llm()
     db = initialize_database()
