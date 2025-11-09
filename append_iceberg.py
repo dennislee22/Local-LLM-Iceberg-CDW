@@ -11,7 +11,6 @@ fake = Faker()
 IMPALA_HOST = 'coordinator-ares-impala-vw.apps.cdppvc.ares.olympus.cloudera.com'
 IMPALA_PORT = 443
 USERNAME = 'dennislee'
-# IMPORTANT: Use an environment variable for the password for better security.
 PASSWORD = os.environ.get('IMPALA_PASSWORD', 'blah')
 HTTP_PATH = '/cliservice'
 ICEBERG_DATABASE = "dlee_telco"
