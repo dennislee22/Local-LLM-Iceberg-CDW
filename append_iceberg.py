@@ -6,7 +6,6 @@ from datetime import datetime
 from impala.dbapi import connect
 from impala.error import Error as ImpalaError
 
-# Initialize Faker to generate synthetic data
 fake = Faker()
 
 IMPALA_HOST = 'coordinator-ares-impala-vw.apps.cdppvc.ares.olympus.cloudera.com'
@@ -16,7 +15,6 @@ USERNAME = 'dennislee'
 PASSWORD = os.environ.get('IMPALA_PASSWORD', 'blah')
 HTTP_PATH = '/cliservice'
 ICEBERG_DATABASE = "dlee_telco"
-
 
 def generate_customers(num_customers=50, start_id=1):
     """Generates new synthetic customer data starting from a specific ID."""
