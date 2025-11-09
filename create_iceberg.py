@@ -9,7 +9,6 @@ from impala.error import Error as ImpalaError
 # Initialize Faker to generate synthetic data
 fake = Faker()
 
-# --- 1. Impala Connection Settings ---
 IMPALA_HOST = 'coordinator-ares-impala-vw.apps.cdppvc.ares.olympus.cloudera.com'
 IMPALA_PORT = 443
 USERNAME = 'dennislee'
@@ -17,8 +16,6 @@ USERNAME = 'dennislee'
 PASSWORD = os.environ.get('IMPALA_PASSWORD', 'blah')
 HTTP_PATH = '/cliservice'
 ICEBERG_DATABASE = "dlee_telco"
-
-# --- 2. Data Generation Functions (returning Pandas DataFrames) ---
 
 def generate_customers(num_customers=200):
     """Generates synthetic customer data as a Pandas DataFrame."""
@@ -106,8 +103,6 @@ def generate_recharges(subscriptions_df, num_recharges=1000):
         })
     print(f"Generated {num_recharges} recharges.")
     return pd.DataFrame(recharges)
-
-# --- 3. Impala Database and Table Operations ---
 
 def setup_database_and_tables(cursor):
     """Creates the database and tables for the telco dataset."""
@@ -208,7 +203,6 @@ def insert_dataframe(cursor, df, table_name):
     cursor.execute(query)
     print(f"Finished batch insert into '{table_name}'.")
 
-# --- 4. Main Execution ---
 if __name__ == '__main__':
     conn = None
     try:
