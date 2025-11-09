@@ -6,7 +6,6 @@ from datetime import datetime
 from impala.dbapi import connect
 from impala.error import Error as ImpalaError
 
-# Initialize Faker to generate synthetic data
 fake = Faker()
 
 IMPALA_HOST = 'coordinator-ares-impala-vw.apps.cdppvc.ares.olympus.cloudera.com'
