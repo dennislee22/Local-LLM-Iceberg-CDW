@@ -27,7 +27,6 @@ LLM can act as powerful translators, turning natural language questions into exe
    
 2. Install the required python libraries.
   ```
-  pip install -pydantic gradio httpx uvicorn accelerate fastapi torch transformers ipywidgets pandas
   pip install -r requirements.txt 
   ```
 
